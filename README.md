@@ -6,5 +6,9 @@ Official Github Repo for EMNLP 2020 paper `Quantifying Intimacy in Language` by 
 ### Annotated question intimacy data:
 `data/annotated_question_intimacy_data` 
 
+## Code
+Forthcoming
+
+
 ## Contact
 Jiaxin Pei (pedropei@umich.edu)
