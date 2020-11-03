@@ -8,8 +8,11 @@ Official Github Repo for EMNLP 2020 paper `Quantifying Intimacy in Language` by 
 
 ## Code
 ### Python pacakge for intimacy prediction
-If `pip` is installed, question-intimacy could be installed directly from it:
-    pip3 install question-intimacy
+If `pip` is installed, question-intimacy could be installed directly via [pip](https://pypi.org/project/question-intimacy/):
+```
+pip3 install question-intimacy
+```
+    
 
 ### Model parameters
 Our model is also available on [Hugging Face Transformers](https://huggingface.co/pedropei/question-intimacy)
