@@ -1,6 +1,6 @@
 # Quantifying-Intimacy-in-Language
 
-Official Github Repo for EMNLP 2020 paper `Quantifying Intimacy in Language` by Jiaxin Pei and David Jurgens.
+Official Github Repo for EMNLP 2020 paper `Quantifying Intimacy in Language` by [Jiaxin Pei](https://jiaxin-pei.github.io/) and [David Jurgens](https://jurgens.people.si.umich.edu/).
 
 ## Data
 ### Annotated question intimacy data:
