@@ -17,11 +17,12 @@ pip3 install question-intimacy
 ### Pre-trained model
 Our model is also available on [Hugging Face Transformers](https://huggingface.co/pedropei/question-intimacy)
 ```
-      from transformers import AutoTokenizer, AutoModelForSequenceClassification
-      tokenizer = AutoTokenizer.from_pretrained("pedropei/question-intimacy")
-      model = AutoModelForSequenceClassification.from_pretrained("pedropei/question-intimacy")
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+tokenizer = AutoTokenizer.from_pretrained("pedropei/question-intimacy")
+model = AutoModelForSequenceClassification.from_pretrained("pedropei/question-intimacy")
 ```
 
+### Code to train the intimacy regressor
 
 Forthcoming
 
