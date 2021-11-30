@@ -142,7 +142,7 @@ def run_epoch(model, train_data, val_data, tokenizer,config, optimizer):
 
     return train_losses, val_accuracies
 
-def get_test_result(model, test_x, test_y, config,tokenizer, save_path, ext_test = False):
+def get_test_result(model, test_x, test_y, config,tokenizer, save_path, ext_test = False, pure_inference=False):
     cuda = config.cuda
     all_raw = []
     all_preds = []
@@ -182,14 +182,20 @@ def get_test_result(model, test_x, test_y, config,tokenizer, save_path, ext_test
 
     if save_path:
         with open(save_path, 'w') as w:
-            for i in range(len(all_y)):
-                if i < 2:
-                    print(all_x[i], all_res[i], test_y[i])
-                #print(all_raw[i], test_y[i])
-                w.writelines(all_x[i] + '\t' + str(all_y[i]) + '\t' + str(all_res[i]) + '\n')
-
-    print('mse:', (np.square(all_y - all_res)).mean())
-    print('pearson r:', stats.pearsonr(all_res, all_y)[0])
+            if pure_inference:
+                 for i in range(len(all_y)):                
+                    if i < 2:
+                        print(all_x[i], all_res[i])                    
+                    w.writelines(all_x[i] + '\t' + str(all_res[i]) + '\n')
+            else:
+                for i in range(len(all_y)):                
+                    if i < 2:
+                        print(all_x[i], all_res[i], test_y[i])                    
+                    w.writelines(all_x[i] + '\t' + str(all_y[i]) + '\t' + str(all_res[i]) + '\n')
+    
+    if not pure_inference:
+        print('mse:', (np.square(all_y - all_res)).mean())
+        print('pearson r:', stats.pearsonr(all_res, all_y)[0])
 
     if ext_test:
         print('book pearson r:', stats.pearsonr(all_res[:50], all_y[:50])[0])
@@ -205,15 +211,15 @@ def arguments():
     parser = ArgumentParser()
     parser.set_defaults(show_path=False, show_similarity=False)
 
-    parser.add_argument('mode')
-    parser.add_argument('model_name')
-    parser.add_argument('pre_trained_model_path')
-    parser.add_argument('train_path', default='train.txt')
-    parser.add_argument('val_path', default='val.txt')
-    parser.add_argument('test_path', default='test.txt')
-    parser.add_argument('predict_data_path')
-    parser.add_argument('model_saving_path', default=None)
-    parser.add_argument('test_saving_path', default=None)
+    parser.add_argument('--mode')
+    parser.add_argument('--model_name')
+    parser.add_argument('--pre_trained_model_name_or_path')
+    parser.add_argument('--train_path', default='train.txt')
+    parser.add_argument('--val_path', default='val.txt')
+    parser.add_argument('--test_path', default='test.txt')
+    parser.add_argument('--predict_data_path')
+    parser.add_argument('--model_saving_path', default=None)
+    parser.add_argument('--test_saving_path', default=None)
 
     return parser.parse_args()
 
@@ -238,32 +244,28 @@ if __name__=='__main__':
                     print('error in loading:',path)
         return text,y
 
-    train_text,  train_labels = get_data(args.train_path)
-    val_text,  val_labels = get_data(args.val_path)
-
     
-    test_text,  test_labels = get_data(args.test_path)
-    final_test_text,final_test_y = get_data(args.predict_data_path)
-
-
-    tokenizer = RobertaTokenizer.from_pretrained(args.pre_trained_model_path,num_labels=1,output_attentions = False,output_hidden_states = False)
-    
-
     config = Config(args.model_name)
-    train_x = train_text
-    train_y = np.array(train_labels)
-    val_x = val_text
-    val_y = np.array(val_labels)
-    
+    tokenizer = RobertaTokenizer.from_pretrained(args.pre_trained_model_name_or_path,num_labels=1,output_attentions = False,output_hidden_states = False)
     # Create Model with specified optimizer and loss function
     ##############################################################
 
-    model = RobertaForSequenceClassification.from_pretrained(args.pre_trained_model_path,num_labels=1,output_attentions = False,output_hidden_states = False)
+    model = RobertaForSequenceClassification.from_pretrained(args.pre_trained_model_name_or_path,num_labels=1,output_attentions = False,output_hidden_states = False)
     if config.cuda:
         model.cuda()
-
+        
+       
 
     if args.mode == 'train':
+        
+        train_text,  train_labels = get_data(args.train_path)
+        val_text,  val_labels = get_data(args.val_path)
+        test_text,  test_labels = get_data(args.test_path)
+        
+        train_x = train_text
+        train_y = np.array(train_labels)
+        val_x = val_text
+        val_y = np.array(val_labels)
         model.train()
         optimizer = optim.Adam(model.parameters(), lr=config.lr, weight_decay=1e-6)
         ##############################################################
@@ -307,7 +309,11 @@ if __name__=='__main__':
         #    tokenizer.save_pretrained(args.model_saving_path)
 
 
-    elif args.mode == 'test':
+    elif args.mode == 'internal-test':
+        val_text,  val_labels = get_data(args.val_path)
+        test_text,  test_labels = get_data(args.test_path)
+        final_test_text,final_test_y = get_data(args.predict_data_path)
+        
         print('external_test:')
         test_result, test_score = get_test_result(model, final_test_text, final_test_y, config, tokenizer,save_path=args.test_saving_path, ext_test = True)
 
@@ -316,6 +322,10 @@ if __name__=='__main__':
 
         print('test:')
         test_result, test_score = get_test_result(model, test_text, test_labels, config, tokenizer,save_path=None, ext_test = False)
+        
+    elif args.mode == 'inference':
+        final_test_text,final_test_y = get_data(args.predict_data_path)
+        test_result, test_score = get_test_result(model, final_test_text, final_test_y, config, tokenizer,save_path=args.test_saving_path, ext_test = False, pure_inference=True)
 
 
 
